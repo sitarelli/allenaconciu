@@ -27,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* Glassmorphism styles */
         .glass {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px);
@@ -55,18 +54,6 @@
         .glass-card:active {
             transform: scale(0.98);
             box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.2);
-        }
-
-        .exercise-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 16px;
-            transition: transform 0.3s ease;
-        }
-
-        .exercise-card:hover .exercise-image {
-            transform: scale(1.02);
         }
 
         .gradient-text {
@@ -120,7 +107,6 @@
             box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -134,26 +120,22 @@
             border-radius: 4px;
         }
 
-        .completed-overlay {
-            position: relative;
+        .svg-illustration {
+            transition: transform 0.3s ease;
         }
 
-        .completed-overlay::after {
-            content: '✓';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        .exercise-card:hover .svg-illustration {
+            transform: scale(1.05);
+        }
+
+        .completed-badge {
+            animation: pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -164,66 +146,366 @@
         const { useState, useEffect } = React;
 
         // Storage utilities
-        const STORAGE_KEY = 'workout_progress_v2';
+        const STORAGE_KEY = 'workout_progress_v3';
         
         const saveProgress = (data) => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         };
 
         const loadProgress = () => {
-            const saved = localStorage.getItem(STORAGE_KEY);
+            const saved = localStorage.setItem(STORAGE_KEY);
             return saved ? JSON.parse(saved) : {};
         };
 
-        // Exercise images mapping (real photos from Unsplash)
-        const exerciseImages = {
-            // Mobility
-            'shoulder_circles': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'neck_rotation': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
-            'wrist_ankle': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
-            'cat_cow': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
-            'torso_rotation': 'https://images.unsplash.com/photo-1599447292617-c7c36f6e8a4f?w=800&q=80',
-            'leg_swings': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80',
-            'jumping_jacks': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            
-            // Upper body
-            'bent_over_row': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
-            'pullover': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'superman': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            'reverse_fly': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
-            'military_press': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
-            'lateral_raise': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'front_raise': 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=800&q=80',
-            'shoulder_shrugs': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
-            'bicep_curl': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
-            'hammer_curl': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
-            'french_press': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'tricep_kickback': 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=800&q=80',
-            
-            // Lower body
-            'squat': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&q=80',
-            'lunges': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'romanian_deadlift': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
-            'glute_bridge': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            'side_lunges': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'calf_raises': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
-            'plank': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'crunch': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            'russian_twist': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
-            'dead_bug': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
-            'side_plank': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-            'mountain_climbers': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            
-            // Stretching
-            'childs_pose': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
-            'quad_stretch': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
-            'hamstring_stretch': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
-            'glute_stretch': 'https://images.unsplash.com/photo-1599447292617-c7c36f6e8a4f?w=800&q=80',
-            'chest_stretch': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
-            'shoulder_stretch': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+        // SVG Exercise Illustrations Component
+        const ExerciseIllustration = ({ type, color = "#667eea" }) => {
+            const illustrations = {
+                // Mobility
+                shoulder_circles: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="40" r="15" fill="url(#grad1)" opacity="0.9"/>
+                        {/* Body */}
+                        <line x1="100" y1="55" x2="100" y2="120" stroke="url(#grad1)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* Rotating arms */}
+                        <circle cx="100" cy="70" r="40" fill="none" stroke={color} strokeWidth="3" strokeDasharray="5,5" opacity="0.4"/>
+                        <line x1="60" y1="70" x2="140" y2="70" stroke="url(#grad1)" strokeWidth="6" strokeLinecap="round"/>
+                        <circle cx="60" cy="70" r="8" fill={color}/>
+                        <circle cx="140" cy="70" r="8" fill={color}/>
+                        {/* Legs */}
+                        <line x1="100" y1="120" x2="80" y2="160" stroke="url(#grad1)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="120" x2="120" y2="160" stroke="url(#grad1)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+                
+                neck_rotation: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head tilted */}
+                        <ellipse cx="110" cy="40" rx="18" ry="15" fill="url(#grad2)" opacity="0.9" transform="rotate(15 110 40)"/>
+                        {/* Rotation arc */}
+                        <path d="M 85 35 Q 100 15 115 35" fill="none" stroke={color} strokeWidth="2" strokeDasharray="3,3"/>
+                        <path d="M 85 45 Q 100 65 115 45" fill="none" stroke={color} strokeWidth="2" strokeDasharray="3,3"/>
+                        {/* Neck */}
+                        <line x1="105" y1="55" x2="100" y2="75" stroke="url(#grad2)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Body */}
+                        <line x1="100" y1="75" x2="100" y2="130" stroke="url(#grad2)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Arms down */}
+                        <line x1="100" y1="85" x2="70" y2="115" stroke="url(#grad2)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="100" y1="85" x2="130" y2="115" stroke="url(#grad2)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Legs */}
+                        <line x1="100" y1="130" x2="85" y2="170" stroke="url(#grad2)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="130" x2="115" y2="170" stroke="url(#grad2)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                cat_cow: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="60" cy="80" r="12" fill="url(#grad3)"/>
+                        {/* Curved spine */}
+                        <path d="M 70 85 Q 100 70 130 85" fill="none" stroke="url(#grad3)" strokeWidth="10" strokeLinecap="round"/>
+                        {/* Arms */}
+                        <line x1="80" y1="90" x2="80" y2="130" stroke="url(#grad3)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="120" y1="90" x2="120" y2="130" stroke="url(#grad3)" strokeWidth="7" strokeLinecap="round"/>
+                        {/* Hands */}
+                        <circle cx="80" cy="130" r="6" fill={color}/>
+                        <circle cx="120" cy="130" r="6" fill={color}/>
+                    </svg>
+                ),
+
+                jumping_jacks: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="35" r="15" fill="url(#grad4)"/>
+                        {/* Body */}
+                        <line x1="100" y1="50" x2="100" y2="110" stroke="url(#grad4)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* Arms up and out */}
+                        <line x1="100" y1="60" x2="50" y2="40" stroke="url(#grad4)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="100" y1="60" x2="150" y2="40" stroke="url(#grad4)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Legs spread */}
+                        <line x1="100" y1="110" x2="70" y2="160" stroke="url(#grad4)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="110" x2="130" y2="160" stroke="url(#grad4)" strokeWidth="7" strokeLinecap="round"/>
+                        {/* Motion lines */}
+                        <path d="M 45 45 L 40 50" stroke={color} strokeWidth="2" opacity="0.5"/>
+                        <path d="M 155 45 L 160 50" stroke={color} strokeWidth="2" opacity="0.5"/>
+                    </svg>
+                ),
+
+                // Upper Body
+                bent_over_row: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="80" cy="50" r="12" fill="url(#grad5)"/>
+                        {/* Bent torso */}
+                        <line x1="85" y1="60" x2="120" y2="90" stroke="url(#grad5)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Pulling arm */}
+                        <line x1="90" y1="70" x2="70" y2="95" stroke="url(#grad5)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="70" y1="95" x2="85" y2="85" stroke="url(#grad5)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Support arm */}
+                        <line x1="95" y1="75" x2="115" y2="115" stroke="url(#grad5)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Dumbbell */}
+                        <rect x="65" y="92" width="10" height="6" rx="2" fill={color}/>
+                        {/* Legs */}
+                        <line x1="120" y1="90" x2="125" y2="140" stroke="url(#grad5)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="120" y1="90" x2="135" y2="140" stroke="url(#grad5)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                military_press: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="40" r="14" fill="url(#grad6)"/>
+                        {/* Body */}
+                        <line x1="100" y1="54" x2="100" y2="115" stroke="url(#grad6)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Arms pressing up */}
+                        <line x1="100" y1="65" x2="75" y2="45" stroke="url(#grad6)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="75" y1="45" x2="70" y2="25" stroke="url(#grad6)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="100" y1="65" x2="125" y2="45" stroke="url(#grad6)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="125" y1="45" x2="130" y2="25" stroke="url(#grad6)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Dumbbells */}
+                        <rect x="65" y="20" width="12" height="8" rx="2" fill={color}/>
+                        <rect x="125" y="20" width="12" height="8" rx="2" fill={color}/>
+                        {/* Legs */}
+                        <line x1="100" y1="115" x2="85" y2="160" stroke="url(#grad6)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="115" x2="115" y2="160" stroke="url(#grad6)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                bicep_curl: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="40" r="14" fill="url(#grad7)"/>
+                        {/* Body */}
+                        <line x1="100" y1="54" x2="100" y2="120" stroke="url(#grad7)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Right arm curled */}
+                        <line x1="100" y1="65" x2="125" y2="80" stroke="url(#grad7)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="125" y1="80" x2="120" y2="60" stroke="url(#grad7)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Dumbbell */}
+                        <rect x="115" y="55" width="12" height="8" rx="2" fill={color}/>
+                        {/* Left arm down */}
+                        <line x1="100" y1="65" x2="70" y2="90" stroke="url(#grad7)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="70" y1="90" x2="65" y2="110" stroke="url(#grad7)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Legs */}
+                        <line x1="100" y1="120" x2="85" y2="165" stroke="url(#grad7)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="120" x2="115" y2="165" stroke="url(#grad7)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                // Lower Body
+                squat: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad8" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="50" r="14" fill="url(#grad8)"/>
+                        {/* Body leaning forward */}
+                        <line x1="100" y1="64" x2="95" y2="100" stroke="url(#grad8)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Arms forward */}
+                        <line x1="95" y1="75" x2="70" y2="85" stroke="url(#grad8)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="95" y1="75" x2="120" y2="85" stroke="url(#grad8)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Thighs */}
+                        <line x1="95" y1="100" x2="80" y2="130" stroke="url(#grad8)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="95" y1="100" x2="110" y2="130" stroke="url(#grad8)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* Calves */}
+                        <line x1="80" y1="130" x2="75" y2="160" stroke="url(#grad8)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="110" y1="130" x2="115" y2="160" stroke="url(#grad8)" strokeWidth="7" strokeLinecap="round"/>
+                        {/* Dumbbells */}
+                        <rect x="65" y="82" width="10" height="6" rx="2" fill={color}/>
+                        <rect x="115" y="82" width="10" height="6" rx="2" fill={color}/>
+                    </svg>
+                ),
+
+                lunges: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad9" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="45" r="14" fill="url(#grad9)"/>
+                        {/* Body */}
+                        <line x1="100" y1="59" x2="100" y2="105" stroke="url(#grad9)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Arms on hips */}
+                        <line x1="100" y1="75" x2="80" y2="85" stroke="url(#grad9)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="100" y1="75" x2="120" y2="85" stroke="url(#grad9)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Front leg bent */}
+                        <line x1="100" y1="105" x2="115" y2="135" stroke="url(#grad9)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="115" y1="135" x2="120" y2="165" stroke="url(#grad9)" strokeWidth="7" strokeLinecap="round"/>
+                        {/* Back leg extended */}
+                        <line x1="100" y1="105" x2="75" y2="140" stroke="url(#grad9)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="75" y1="140" x2="65" y2="155" stroke="url(#grad9)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                glute_bridge: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad10" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head on ground */}
+                        <circle cx="70" cy="130" r="12" fill="url(#grad10)"/>
+                        {/* Arched back */}
+                        <path d="M 82 130 Q 100 80 125 110" fill="none" stroke="url(#grad10)" strokeWidth="10" strokeLinecap="round"/>
+                        {/* Legs bent */}
+                        <line x1="90" y1="115" x2="85" y2="145" stroke="url(#grad10)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="120" y1="105" x2="130" y2="145" stroke="url(#grad10)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* Ground line */}
+                        <line x1="40" y1="145" x2="160" y2="145" stroke={color} strokeWidth="2" opacity="0.3"/>
+                        {/* Dumbbell on hips */}
+                        <rect x="95" y="85" width="15" height="8" rx="2" fill={color}/>
+                    </svg>
+                ),
+
+                plank: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad11" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="70" cy="85" r="12" fill="url(#grad11)"/>
+                        {/* Straight body */}
+                        <line x1="82" y1="90" x2="130" y2="100" stroke="url(#grad11)" strokeWidth="10" strokeLinecap="round"/>
+                        {/* Arms supporting */}
+                        <line x1="85" y1="95" x2="80" y2="120" stroke="url(#grad11)" strokeWidth="7" strokeLinecap="round"/>
+                        <circle cx="80" cy="120" r="6" fill={color}/>
+                        {/* Legs */}
+                        <line x1="130" y1="100" x2="140" y2="125" stroke="url(#grad11)" strokeWidth="7" strokeLinecap="round"/>
+                        <circle cx="140" cy="125" r="5" fill={color}/>
+                        {/* Ground line */}
+                        <line x1="50" y1="125" x2="160" y2="125" stroke={color} strokeWidth="2" opacity="0.3"/>
+                    </svg>
+                ),
+
+                russian_twist: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad12" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="70" r="13" fill="url(#grad12)"/>
+                        {/* Torso leaning back */}
+                        <line x1="100" y1="83" x2="100" y2="120" stroke="url(#grad12)" strokeWidth="9" strokeLinecap="round"/>
+                        {/* Arms rotated with weight */}
+                        <line x1="100" y1="95" x2="70" y2="100" stroke="url(#grad12)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="100" y1="95" x2="75" y2="105" stroke="url(#grad12)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Dumbbell */}
+                        <rect x="65" y="100" width="12" height="7" rx="2" fill={color}/>
+                        {/* Bent legs */}
+                        <line x1="100" y1="120" x2="90" y2="145" stroke="url(#grad12)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="100" y1="120" x2="110" y2="145" stroke="url(#grad12)" strokeWidth="8" strokeLinecap="round"/>
+                        <line x1="90" y1="145" x2="85" y2="155" stroke="url(#grad12)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="110" y1="145" x2="115" y2="155" stroke="url(#grad12)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+
+                // Stretching
+                childs_pose: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad13" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head down */}
+                        <circle cx="85" cy="110" r="11" fill="url(#grad13)"/>
+                        {/* Curved back */}
+                        <path d="M 95 110 Q 110 95 125 100" fill="none" stroke="url(#grad13)" strokeWidth="10" strokeLinecap="round"/>
+                        {/* Arms extended forward */}
+                        <line x1="85" y1="115" x2="60" y2="120" stroke="url(#grad13)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="90" y1="115" x2="65" y2="125" stroke="url(#grad13)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Sitting on heels */}
+                        <path d="M 125 100 Q 130 115 125 130" fill="none" stroke="url(#grad13)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* Ground */}
+                        <line x1="40" y1="130" x2="160" y2="130" stroke={color} strokeWidth="2" opacity="0.3"/>
+                    </svg>
+                ),
+
+                stretch: (
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <defs>
+                            <linearGradient id="grad14" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style={{stopColor: color, stopOpacity: 1}} />
+                                <stop offset="100%" style={{stopColor: "#764ba2", stopOpacity: 1}} />
+                            </linearGradient>
+                        </defs>
+                        {/* Head */}
+                        <circle cx="100" cy="50" r="13" fill="url(#grad14)"/>
+                        {/* Body */}
+                        <line x1="100" y1="63" x2="100" y2="115" stroke="url(#grad14)" strokeWidth="8" strokeLinecap="round"/>
+                        {/* One arm stretched up */}
+                        <line x1="100" y1="70" x2="95" y2="35" stroke="url(#grad14)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Other arm behind head */}
+                        <line x1="100" y1="70" x2="110" y2="55" stroke="url(#grad14)" strokeWidth="6" strokeLinecap="round"/>
+                        <line x1="110" y1="55" x2="105" y2="45" stroke="url(#grad14)" strokeWidth="6" strokeLinecap="round"/>
+                        {/* Legs */}
+                        <line x1="100" y1="115" x2="90" y2="160" stroke="url(#grad14)" strokeWidth="7" strokeLinecap="round"/>
+                        <line x1="100" y1="115" x2="110" y2="160" stroke="url(#grad14)" strokeWidth="7" strokeLinecap="round"/>
+                    </svg>
+                ),
+            };
+
+            return illustrations[type] || illustrations.stretch;
         };
 
-        // Timer Component with glassmorphism
+        // Timer Component
         const Timer = ({ duration, onComplete }) => {
             const [seconds, setSeconds] = useState(duration);
             const [isActive, setIsActive] = useState(false);
@@ -260,28 +542,18 @@
                 <div className={`glass-dark p-6 rounded-3xl ${isActive ? 'timer-active' : ''}`}>
                     <div className="relative w-48 h-48 mx-auto mb-4">
                         <svg className="transform -rotate-90 w-48 h-48">
+                            <circle cx="96" cy="96" r="88" stroke="rgba(255,255,255,0.2)" strokeWidth="8" fill="none"/>
                             <circle
-                                cx="96"
-                                cy="96"
-                                r="88"
-                                stroke="rgba(255,255,255,0.2)"
-                                strokeWidth="8"
-                                fill="none"
-                            />
-                            <circle
-                                cx="96"
-                                cy="96"
-                                r="88"
-                                stroke="url(#gradient)"
-                                strokeWidth="8"
-                                fill="none"
+                                cx="96" cy="96" r="88"
+                                stroke="url(#timerGrad)"
+                                strokeWidth="8" fill="none"
                                 strokeDasharray={`${2 * Math.PI * 88}`}
                                 strokeDashoffset={`${2 * Math.PI * 88 * (1 - progress / 100)}`}
                                 className="progress-ring"
                                 strokeLinecap="round"
                             />
                             <defs>
-                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stopColor="#ec4899" />
                                     <stop offset="100%" stopColor="#8b5cf6" />
                                 </linearGradient>
@@ -299,41 +571,27 @@
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <button
-                            onClick={toggle}
-                            className="flex-1 btn-primary text-white py-4 px-6 rounded-2xl font-semibold text-lg"
-                        >
+                        <button onClick={toggle} className="flex-1 btn-primary text-white py-4 px-6 rounded-2xl font-semibold text-lg">
                             {isActive ? '⏸ Pausa' : '▶ Avvia'}
                         </button>
-                        <button
-                            onClick={reset}
-                            className="glass text-white py-4 px-6 rounded-2xl font-semibold text-lg"
-                        >
-                            ↻
-                        </button>
+                        <button onClick={reset} className="glass text-white py-4 px-6 rounded-2xl font-semibold text-lg">↻</button>
                     </div>
                 </div>
             );
         };
 
-        // Exercise Card with photo
-        const ExerciseCard = ({ exercise, isCompleted, onToggle, showImage }) => {
+        // Exercise Card with SVG
+        const ExerciseCard = ({ exercise, isCompleted, onToggle }) => {
             return (
-                <div 
-                    onClick={onToggle}
-                    className={`glass-card rounded-3xl overflow-hidden mb-4 cursor-pointer exercise-card ${isCompleted ? 'opacity-70' : ''}`}
-                >
-                    {showImage && exercise.imageKey && (
-                        <div className={`relative ${isCompleted ? 'completed-overlay' : ''}`}>
-                            <img 
-                                src={exerciseImages[exercise.imageKey]} 
-                                alt={exercise.name}
-                                className="exercise-image"
-                                loading="lazy"
-                            />
+                <div onClick={onToggle} className={`glass-card rounded-3xl overflow-hidden mb-4 cursor-pointer exercise-card ${isCompleted ? 'opacity-70' : ''}`}>
+                    {exercise.svg && (
+                        <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 p-8">
+                            <div className="svg-illustration max-w-[200px] mx-auto">
+                                <ExerciseIllustration type={exercise.svg} color="#667eea" />
+                            </div>
                             {isCompleted && (
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                    <div className="text-6xl">✓</div>
+                                <div className="absolute top-4 right-4 w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg completed-badge">
+                                    ✓
                                 </div>
                             )}
                         </div>
@@ -366,7 +624,7 @@
             );
         };
 
-        // Main App Component
+        // Main App
         const WorkoutApp = () => {
             const [activeDay, setActiveDay] = useState('mobility');
             const [progress, setProgress] = useState(loadProgress());
@@ -379,90 +637,76 @@
             const toggleExercise = (day, exerciseId) => {
                 setProgress(prev => ({
                     ...prev,
-                    [day]: {
-                        ...prev[day],
-                        [exerciseId]: !prev[day]?.[exerciseId]
-                    }
+                    [day]: { ...prev[day], [exerciseId]: !prev[day]?.[exerciseId] }
                 }));
             };
 
             const resetDay = (day) => {
                 if (confirm('Vuoi resettare tutti gli esercizi di questa sessione?')) {
-                    setProgress(prev => ({
-                        ...prev,
-                        [day]: {}
-                    }));
+                    setProgress(prev => ({ ...prev, [day]: {} }));
                 }
             };
 
             const workoutData = {
                 mobility: {
-                    title: 'Mobilità',
-                    icon: '🧘‍♀️',
-                    subtitle: '10 minuti - Inizia sempre da qui',
+                    title: 'Mobilità', icon: '🧘‍♀️', subtitle: '10 minuti - Inizia sempre da qui',
                     color: 'from-pink-500 to-rose-500',
                     exercises: [
-                        { id: 1, name: 'Cerchi con le spalle', sets: '10 avanti + 10 indietro', description: 'Rilassa spalle e trapezi', emoji: '🔄', imageKey: 'shoulder_circles' },
-                        { id: 2, name: 'Rotazioni del collo', sets: '8 per lato', description: 'Movimenti lenti e controllati', emoji: '↔️', imageKey: 'neck_rotation' },
-                        { id: 3, name: 'Cerchi polsi e caviglie', sets: '10 per lato', description: 'Prepara le articolazioni', emoji: '⭕', imageKey: 'wrist_ankle' },
-                        { id: 4, name: 'Cat-Cow', sets: '10 ripetizioni', description: 'Mobilizza la colonna vertebrale', emoji: '🐱', imageKey: 'cat_cow' },
-                        { id: 5, name: 'Rotazioni del busto', sets: '10 per lato', description: 'Ruota da seduta o in piedi', emoji: '🔃', imageKey: 'torso_rotation' },
-                        { id: 6, name: 'Swing delle gambe', sets: '10 per gamba', description: 'Avanti/indietro e laterale', emoji: '🦵', imageKey: 'leg_swings' },
-                        { id: 7, name: 'Jumping jacks', sets: '2 minuti', description: 'Aumenta la temperatura corporea', emoji: '🏃‍♀️', imageKey: 'jumping_jacks' }
+                        { id: 1, name: 'Cerchi con le spalle', sets: '10 avanti + 10 indietro', description: 'Rilassa spalle e trapezi', emoji: '🔄', svg: 'shoulder_circles' },
+                        { id: 2, name: 'Rotazioni del collo', sets: '8 per lato', description: 'Movimenti lenti e controllati', emoji: '↔️', svg: 'neck_rotation' },
+                        { id: 3, name: 'Cerchi polsi e caviglie', sets: '10 per lato', description: 'Prepara le articolazioni', emoji: '⭕', svg: 'shoulder_circles' },
+                        { id: 4, name: 'Cat-Cow', sets: '10 ripetizioni', description: 'Mobilizza la colonna vertebrale', emoji: '🐱', svg: 'cat_cow' },
+                        { id: 5, name: 'Rotazioni del busto', sets: '10 per lato', description: 'Ruota da seduta o in piedi', emoji: '🔃', svg: 'neck_rotation' },
+                        { id: 6, name: 'Swing delle gambe', sets: '10 per gamba', description: 'Avanti/indietro e laterale', emoji: '🦵', svg: 'lunges' },
+                        { id: 7, name: 'Jumping jacks', sets: '2 minuti', description: 'Aumenta la temperatura corporea', emoji: '🏃‍♀️', svg: 'jumping_jacks' }
                     ]
                 },
                 upper: {
-                    title: 'Superiore',
-                    icon: '💪',
-                    subtitle: 'Lunedì - Schiena, Spalle, Braccia',
+                    title: 'Superiore', icon: '💪', subtitle: 'Lunedì - Schiena, Spalle, Braccia',
                     color: 'from-purple-500 to-indigo-500',
                     exercises: [
-                        { id: 1, name: 'Rematore con manubri', sets: '3 x 12', description: 'Busto inclinato 45°, gomiti lungo il corpo', emoji: '🚣‍♀️', imageKey: 'bent_over_row', note: 'Fondamentale per postura' },
-                        { id: 2, name: 'Pull-over', sets: '3 x 10', description: 'Sdraiata, scendi manubrio dietro la testa', emoji: '🔽', imageKey: 'pullover' },
-                        { id: 3, name: 'Superman', sets: '3 x 12', description: 'A terra prona, alterna braccia e gambe', emoji: '🦸‍♀️', imageKey: 'superman' },
-                        { id: 4, name: 'Reverse fly', sets: '3 x 12', description: 'Busto flesso, apri braccia lateralmente', emoji: '🦅', imageKey: 'reverse_fly' },
-                        { id: 5, name: 'Military press', sets: '3 x 10', description: 'Spingi manubri sopra la testa', emoji: '⬆️', imageKey: 'military_press', note: 'Top per densità ossea' },
-                        { id: 6, name: 'Alzate laterali', sets: '3 x 12', description: 'Solleva fino altezza spalle', emoji: '↔️', imageKey: 'lateral_raise' },
-                        { id: 7, name: 'Alzate frontali', sets: '3 x 10/braccio', description: 'Alza un manubrio alla volta', emoji: '⬆️', imageKey: 'front_raise' },
-                        { id: 8, name: 'Scrollate spalle', sets: '3 x 15', description: 'Solleva spalle verso orecchie', emoji: '🤷‍♀️', imageKey: 'shoulder_shrugs' },
-                        { id: 9, name: 'Curl bicipiti', sets: '3 x 12', description: 'Gomiti fermi, piega avambracci', emoji: '💪', imageKey: 'bicep_curl' },
-                        { id: 10, name: 'Curl a martello', sets: '3 x 10', description: 'Palmi rivolti uno verso altro', emoji: '🔨', imageKey: 'hammer_curl' },
-                        { id: 11, name: 'French press', sets: '3 x 10', description: 'Sdraiata, piega gomiti verso fronte', emoji: '🔽', imageKey: 'french_press' },
-                        { id: 12, name: 'Kickback tricipiti', sets: '3 x 12/braccio', description: 'Busto flesso, estendi indietro', emoji: '👊', imageKey: 'tricep_kickback' }
+                        { id: 1, name: 'Rematore con manubri', sets: '3 x 12', description: 'Busto inclinato 45°, gomiti lungo il corpo', emoji: '🚣‍♀️', svg: 'bent_over_row', note: 'Fondamentale per postura' },
+                        { id: 2, name: 'Pull-over', sets: '3 x 10', description: 'Sdraiata, scendi manubrio dietro la testa', emoji: '🔽', svg: 'glute_bridge' },
+                        { id: 3, name: 'Superman', sets: '3 x 12', description: 'A terra prona, alterna braccia e gambe', emoji: '🦸‍♀️', svg: 'plank' },
+                        { id: 4, name: 'Reverse fly', sets: '3 x 12', description: 'Busto flesso, apri braccia lateralmente', emoji: '🦅', svg: 'bent_over_row' },
+                        { id: 5, name: 'Military press', sets: '3 x 10', description: 'Spingi manubri sopra la testa', emoji: '⬆️', svg: 'military_press', note: 'Top per densità ossea' },
+                        { id: 6, name: 'Alzate laterali', sets: '3 x 12', description: 'Solleva fino altezza spalle', emoji: '↔️', svg: 'military_press' },
+                        { id: 7, name: 'Alzate frontali', sets: '3 x 10/braccio', description: 'Alza un manubrio alla volta', emoji: '⬆️', svg: 'military_press' },
+                        { id: 8, name: 'Scrollate spalle', sets: '3 x 15', description: 'Solleva spalle verso orecchie', emoji: '🤷‍♀️', svg: 'shoulder_circles' },
+                        { id: 9, name: 'Curl bicipiti', sets: '3 x 12', description: 'Gomiti fermi, piega avambracci', emoji: '💪', svg: 'bicep_curl' },
+                        { id: 10, name: 'Curl a martello', sets: '3 x 10', description: 'Palmi rivolti uno verso altro', emoji: '🔨', svg: 'bicep_curl' },
+                        { id: 11, name: 'French press', sets: '3 x 10', description: 'Sdraiata, piega gomiti verso fronte', emoji: '🔽', svg: 'glute_bridge' },
+                        { id: 12, name: 'Kickback tricipiti', sets: '3 x 12/braccio', description: 'Busto flesso, estendi indietro', emoji: '👊', svg: 'bent_over_row' }
                     ]
                 },
                 lower: {
-                    title: 'Inferiore',
-                    icon: '🍑',
-                    subtitle: 'Giovedì - Gambe, Glutei, Core',
+                    title: 'Inferiore', icon: '🍑', subtitle: 'Giovedì - Gambe, Glutei, Core',
                     color: 'from-blue-500 to-cyan-500',
                     exercises: [
-                        { id: 1, name: 'Squat con manubri', sets: '4 x 12', description: 'Scendi a 90°, schiena dritta', emoji: '🏋️‍♀️', imageKey: 'squat', note: 'PRIORITÀ osteoporosi!' },
-                        { id: 2, name: 'Affondi alternati', sets: '3 x 10/gamba', description: 'Passo avanti, scendi, ritorna', emoji: '🦵', imageKey: 'lunges' },
-                        { id: 3, name: 'Stacchi rumeni', sets: '3 x 12', description: 'Gambe tese, scendi con manubri', emoji: '⬇️', imageKey: 'romanian_deadlift', note: 'Top per glutei' },
-                        { id: 4, name: 'Ponte glutei', sets: '3 x 15', description: 'Manubrio sul bacino, solleva', emoji: '🌉', imageKey: 'glute_bridge' },
-                        { id: 5, name: 'Affondi laterali', sets: '3 x 10/lato', description: 'Passo laterale, piega ginocchio', emoji: '↔️', imageKey: 'side_lunges' },
-                        { id: 6, name: 'Calf raises', sets: '3 x 20', description: 'Solleva sui talloni', emoji: '🦶', imageKey: 'calf_raises' },
-                        { id: 7, name: 'Plank', sets: '3 x 30-45"', description: 'Corpo allineato, core contratto', emoji: '📏', imageKey: 'plank', note: 'Usa il timer!' },
-                        { id: 8, name: 'Crunch con peso', sets: '3 x 15', description: 'Manubrio sul petto', emoji: '⬆️', imageKey: 'crunch' },
-                        { id: 9, name: 'Russian twist', sets: '3 x 20', description: 'Ruota busto con manubrio', emoji: '🔄', imageKey: 'russian_twist' },
-                        { id: 10, name: 'Dead bug', sets: '3 x 12', description: 'Alterna braccia/gambe opposte', emoji: '🪲', imageKey: 'dead_bug' },
-                        { id: 11, name: 'Side plank', sets: '2 x 20-30"/lato', description: 'Corpo allineato lateralmente', emoji: '📐', imageKey: 'side_plank' },
-                        { id: 12, name: 'Mountain climbers', sets: '3 x 20', description: 'Ginocchia al petto alternate', emoji: '⛰️', imageKey: 'mountain_climbers' }
+                        { id: 1, name: 'Squat con manubri', sets: '4 x 12', description: 'Scendi a 90°, schiena dritta', emoji: '🏋️‍♀️', svg: 'squat', note: 'PRIORITÀ osteoporosi!' },
+                        { id: 2, name: 'Affondi alternati', sets: '3 x 10/gamba', description: 'Passo avanti, scendi, ritorna', emoji: '🦵', svg: 'lunges' },
+                        { id: 3, name: 'Stacchi rumeni', sets: '3 x 12', description: 'Gambe tese, scendi con manubri', emoji: '⬇️', svg: 'bent_over_row', note: 'Top per glutei' },
+                        { id: 4, name: 'Ponte glutei', sets: '3 x 15', description: 'Manubrio sul bacino, solleva', emoji: '🌉', svg: 'glute_bridge' },
+                        { id: 5, name: 'Affondi laterali', sets: '3 x 10/lato', description: 'Passo laterale, piega ginocchio', emoji: '↔️', svg: 'lunges' },
+                        { id: 6, name: 'Calf raises', sets: '3 x 20', description: 'Solleva sui talloni', emoji: '🦶', svg: 'squat' },
+                        { id: 7, name: 'Plank', sets: '3 x 30-45"', description: 'Corpo allineato, core contratto', emoji: '📏', svg: 'plank', note: 'Usa il timer!' },
+                        { id: 8, name: 'Crunch con peso', sets: '3 x 15', description: 'Manubrio sul petto', emoji: '⬆️', svg: 'glute_bridge' },
+                        { id: 9, name: 'Russian twist', sets: '3 x 20', description: 'Ruota busto con manubrio', emoji: '🔄', svg: 'russian_twist' },
+                        { id: 10, name: 'Dead bug', sets: '3 x 12', description: 'Alterna braccia/gambe opposte', emoji: '🪲', svg: 'glute_bridge' },
+                        { id: 11, name: 'Side plank', sets: '2 x 20-30"/lato', description: 'Corpo allineato lateralmente', emoji: '📐', svg: 'plank' },
+                        { id: 12, name: 'Mountain climbers', sets: '3 x 20', description: 'Ginocchia al petto alternate', emoji: '⛰️', svg: 'plank' }
                     ]
                 },
                 stretching: {
-                    title: 'Stretching',
-                    icon: '🧘',
-                    subtitle: '5-10 minuti - Finisci sempre con questo',
+                    title: 'Stretching', icon: '🧘', subtitle: '5-10 minuti - Finisci sempre con questo',
                     color: 'from-emerald-500 to-teal-500',
                     exercises: [
-                        { id: 1, name: "Child's pose", sets: '1 minuto', description: 'Seduta sui talloni, braccia avanti', emoji: '🙇‍♀️', imageKey: 'childs_pose' },
-                        { id: 2, name: 'Stretch quadricipiti', sets: '30" per gamba', description: 'Porta tallone al gluteo', emoji: '🦵', imageKey: 'quad_stretch' },
-                        { id: 3, name: 'Stretch posteriori', sets: '30" per gamba', description: 'Gamba tesa, piegati avanti', emoji: '🤸‍♀️', imageKey: 'hamstring_stretch' },
-                        { id: 4, name: 'Stretch glutei', sets: '30" per lato', description: 'Caviglia su ginocchio opposto', emoji: '4️⃣', imageKey: 'glute_stretch' },
-                        { id: 5, name: 'Stretch pettorali', sets: '30" per lato', description: 'Braccio su muro, ruota corpo', emoji: '🚪', imageKey: 'chest_stretch' },
-                        { id: 6, name: 'Stretch spalle', sets: '30" per braccio', description: 'Gomito dietro la testa', emoji: '💪', imageKey: 'shoulder_stretch' }
+                        { id: 1, name: "Child's pose", sets: '1 minuto', description: 'Seduta sui talloni, braccia avanti', emoji: '🙇‍♀️', svg: 'childs_pose' },
+                        { id: 2, name: 'Stretch quadricipiti', sets: '30" per gamba', description: 'Porta tallone al gluteo', emoji: '🦵', svg: 'stretch' },
+                        { id: 3, name: 'Stretch posteriori', sets: '30" per gamba', description: 'Gamba tesa, piegati avanti', emoji: '🤸‍♀️', svg: 'childs_pose' },
+                        { id: 4, name: 'Stretch glutei', sets: '30" per lato', description: 'Caviglia su ginocchio opposto', emoji: '4️⃣', svg: 'glute_bridge' },
+                        { id: 5, name: 'Stretch pettorali', sets: '30" per lato', description: 'Braccio su muro, ruota corpo', emoji: '🚪', svg: 'stretch' },
+                        { id: 6, name: 'Stretch spalle', sets: '30" per braccio', description: 'Gomito dietro la testa', emoji: '💪', svg: 'stretch' }
                     ]
                 }
             };
@@ -474,7 +718,6 @@
 
             return (
                 <div className="min-h-screen pb-24">
-                    {/* Header with gradient */}
                     <div className={`bg-gradient-to-r ${currentSection.color} text-white p-8 sticky top-0 z-20 shadow-2xl`}>
                         <div className="flex items-center gap-3 mb-2">
                             <span className="text-5xl float-animation">{currentSection.icon}</span>
@@ -485,7 +728,6 @@
                         </div>
                     </div>
 
-                    {/* Navigation Pills */}
                     <div className="glass-dark sticky top-[120px] z-10 overflow-x-auto">
                         <div className="flex gap-3 p-4 min-w-max">
                             {Object.entries(workoutData).map(([key, data]) => (
@@ -493,9 +735,7 @@
                                     key={key}
                                     onClick={() => setActiveDay(key)}
                                     className={`nav-pill px-6 py-3 rounded-2xl text-sm font-bold whitespace-nowrap ${
-                                        activeDay === key
-                                            ? 'active text-white'
-                                            : 'glass text-white/80'
+                                        activeDay === key ? 'active text-white' : 'glass text-white/80'
                                     }`}
                                 >
                                     <span className="mr-2">{data.icon}</span>
@@ -505,14 +745,11 @@
                         </div>
                     </div>
 
-                    {/* Content */}
                     <div className="p-5">
-                        {/* Section Info */}
                         <div className="glass-card rounded-3xl p-6 mb-5">
                             <h2 className="text-2xl font-bold gradient-text mb-1">{currentSection.title}</h2>
                             <p className="text-gray-600 text-sm mb-4">{currentSection.subtitle}</p>
                             
-                            {/* Circular Progress */}
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
@@ -552,31 +789,22 @@
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="flex gap-3 mt-5">
-                                <button
-                                    onClick={() => setShowTimer(!showTimer)}
-                                    className="flex-1 btn-primary text-white py-3 px-4 rounded-2xl text-sm font-bold"
-                                >
+                                <button onClick={() => setShowTimer(!showTimer)} className="flex-1 btn-primary text-white py-3 px-4 rounded-2xl text-sm font-bold">
                                     {showTimer ? '✕ Chiudi' : '⏱'} Timer
                                 </button>
-                                <button
-                                    onClick={() => resetDay(activeDay)}
-                                    className="glass-dark text-white py-3 px-4 rounded-2xl text-sm font-bold"
-                                >
+                                <button onClick={() => resetDay(activeDay)} className="glass-dark text-white py-3 px-4 rounded-2xl text-sm font-bold">
                                     ↻ Reset
                                 </button>
                             </div>
                         </div>
 
-                        {/* Timer */}
                         {showTimer && (
                             <div className="mb-5">
                                 <Timer duration={60} />
                             </div>
                         )}
 
-                        {/* Exercises List */}
                         <div>
                             {currentSection.exercises.map(exercise => (
                                 <ExerciseCard
@@ -584,12 +812,10 @@
                                     exercise={exercise}
                                     isCompleted={progress[activeDay]?.[exercise.id] || false}
                                     onToggle={() => toggleExercise(activeDay, exercise.id)}
-                                    showImage={true}
                                 />
                             ))}
                         </div>
 
-                        {/* Completion Celebration */}
                         {progressPercent === 100 && (
                             <div className="glass-card rounded-3xl p-8 text-center mt-5 bg-gradient-to-br from-green-50 to-emerald-50">
                                 <div className="text-6xl mb-3 float-animation">🎉</div>
@@ -598,14 +824,13 @@
                             </div>
                         )}
 
-                        {/* Info Cards */}
                         <div className="mt-6 space-y-4">
                             <div className="glass rounded-3xl p-5 text-white">
                                 <h3 className="font-bold text-lg mb-3">⚠️ Focus Osteoporosi</h3>
                                 <ul className="text-sm space-y-2 text-white/90">
                                     <li>• Priorità: squat, affondi, stacchi</li>
                                     <li>• Aumenta peso gradualmente</li>
-                                    <li>• Forma perfetta > peso alto</li>
+                                    <li>• Forma perfetta {'>'} peso alto</li>
                                     <li>• Riposo 48h tra sessioni</li>
                                 </ul>
                             </div>
@@ -613,30 +838,12 @@
                             <div className="glass rounded-3xl p-5 text-white">
                                 <h3 className="font-bold text-lg mb-3">📅 Settimana Tipo</h3>
                                 <div className="text-sm space-y-2 text-white/90">
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Lun</span>
-                                        <span>Parte superiore</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Mar</span>
-                                        <span>Cardio (Balla e Snella)</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Mer</span>
-                                        <span>Riposo / mobilità</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Gio</span>
-                                        <span>Parte inferiore + core</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Ven</span>
-                                        <span>Cardio (Balla e Snella)</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">Weekend</span>
-                                        <span>Riposo attivo</span>
-                                    </div>
+                                    <div className="flex justify-between"><span className="font-semibold">Lun</span><span>Parte superiore</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold">Mar</span><span>Cardio (Balla e Snella)</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold">Mer</span><span>Riposo / mobilità</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold">Gio</span><span>Parte inferiore + core</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold">Ven</span><span>Cardio (Balla e Snella)</span></div>
+                                    <div className="flex justify-between"><span className="font-semibold">Weekend</span><span>Riposo attivo</span></div>
                                 </div>
                             </div>
 
