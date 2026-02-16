@@ -5,47 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#6366f1">
-    <title>La Mia Scheda di Allenamento</title>
+    <meta name="theme-color" content="#ec4899">
+    <title>My Workout Journey ✨</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
         body {
             overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
         }
-        .exercise-card {
+
+        /* Glassmorphism styles */
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.2);
+        }
+
+        .exercise-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .exercise-card:hover .exercise-image {
+            transform: scale(1.02);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-ring {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
+            }
+        }
+
+        .timer-active {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             transition: all 0.3s ease;
         }
-        .exercise-card:active {
-            transform: scale(0.98);
+
+        .btn-primary:active {
+            transform: scale(0.95);
         }
-        .completed {
-            opacity: 0.6;
+
+        .nav-pill {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .timer-display {
-            font-variant-numeric: tabular-nums;
+
+        .nav-pill.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .timer-active {
-            animation: pulse 1s ease-in-out infinite;
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .completed-overlay {
+            position: relative;
+        }
+
+        .completed-overlay::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
         // Storage utilities
-        const STORAGE_KEY = 'workout_progress';
+        const STORAGE_KEY = 'workout_progress_v2';
         
         const saveProgress = (data) => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -56,7 +175,55 @@
             return saved ? JSON.parse(saved) : {};
         };
 
-        // Timer Component
+        // Exercise images mapping (real photos from Unsplash)
+        const exerciseImages = {
+            // Mobility
+            'shoulder_circles': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'neck_rotation': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
+            'wrist_ankle': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
+            'cat_cow': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
+            'torso_rotation': 'https://images.unsplash.com/photo-1599447292617-c7c36f6e8a4f?w=800&q=80',
+            'leg_swings': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80',
+            'jumping_jacks': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            
+            // Upper body
+            'bent_over_row': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
+            'pullover': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'superman': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            'reverse_fly': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
+            'military_press': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
+            'lateral_raise': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'front_raise': 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=800&q=80',
+            'shoulder_shrugs': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
+            'bicep_curl': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
+            'hammer_curl': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
+            'french_press': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'tricep_kickback': 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=800&q=80',
+            
+            // Lower body
+            'squat': 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&q=80',
+            'lunges': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'romanian_deadlift': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80',
+            'glute_bridge': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            'side_lunges': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'calf_raises': 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=800&q=80',
+            'plank': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'crunch': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            'russian_twist': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
+            'dead_bug': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
+            'side_plank': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+            'mountain_climbers': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            
+            // Stretching
+            'childs_pose': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
+            'quad_stretch': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
+            'hamstring_stretch': 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&q=80',
+            'glute_stretch': 'https://images.unsplash.com/photo-1599447292617-c7c36f6e8a4f?w=800&q=80',
+            'chest_stretch': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80',
+            'shoulder_stretch': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
+        };
+
+        // Timer Component with glassmorphism
         const Timer = ({ duration, onComplete }) => {
             const [seconds, setSeconds] = useState(duration);
             const [isActive, setIsActive] = useState(false);
@@ -69,6 +236,9 @@
                             if (s <= 1) {
                                 setIsActive(false);
                                 onComplete?.();
+                                if ('vibrate' in navigator) {
+                                    navigator.vibrate([200, 100, 200]);
+                                }
                                 return duration;
                             }
                             return s - 1;
@@ -84,52 +254,112 @@
                 setSeconds(duration);
             };
 
+            const progress = ((duration - seconds) / duration) * 100;
+
             return (
-                <div className="bg-indigo-50 p-4 rounded-lg">
-                    <div className={`text-4xl font-bold text-center mb-3 timer-display ${isActive ? 'timer-active text-indigo-600' : 'text-gray-700'}`}>
-                        {Math.floor(seconds / 60)}:{(seconds % 60).toString().padStart(2, '0')}
+                <div className={`glass-dark p-6 rounded-3xl ${isActive ? 'timer-active' : ''}`}>
+                    <div className="relative w-48 h-48 mx-auto mb-4">
+                        <svg className="transform -rotate-90 w-48 h-48">
+                            <circle
+                                cx="96"
+                                cy="96"
+                                r="88"
+                                stroke="rgba(255,255,255,0.2)"
+                                strokeWidth="8"
+                                fill="none"
+                            />
+                            <circle
+                                cx="96"
+                                cy="96"
+                                r="88"
+                                stroke="url(#gradient)"
+                                strokeWidth="8"
+                                fill="none"
+                                strokeDasharray={`${2 * Math.PI * 88}`}
+                                strokeDashoffset={`${2 * Math.PI * 88 * (1 - progress / 100)}`}
+                                className="progress-ring"
+                                strokeLinecap="round"
+                            />
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#ec4899" />
+                                    <stop offset="100%" stopColor="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="text-5xl font-bold text-white mb-1">
+                                    {Math.floor(seconds / 60)}:{(seconds % 60).toString().padStart(2, '0')}
+                                </div>
+                                <div className="text-white/60 text-sm font-medium">
+                                    {isActive ? 'In corso...' : 'Pronto'}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         <button
                             onClick={toggle}
-                            className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium active:bg-indigo-700"
+                            className="flex-1 btn-primary text-white py-4 px-6 rounded-2xl font-semibold text-lg"
                         >
                             {isActive ? '⏸ Pausa' : '▶ Avvia'}
                         </button>
                         <button
                             onClick={reset}
-                            className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium active:bg-gray-400"
+                            className="glass text-white py-4 px-6 rounded-2xl font-semibold text-lg"
                         >
-                            ↻ Reset
+                            ↻
                         </button>
                     </div>
                 </div>
             );
         };
 
-        // Exercise Card Component
-        const ExerciseCard = ({ exercise, isCompleted, onToggle }) => {
+        // Exercise Card with photo
+        const ExerciseCard = ({ exercise, isCompleted, onToggle, showImage }) => {
             return (
-                <div className={`exercise-card bg-white rounded-lg shadow-sm p-4 mb-3 ${isCompleted ? 'completed' : ''}`}>
-                    <div className="flex items-start gap-3">
-                        <input
-                            type="checkbox"
-                            checked={isCompleted}
-                            onChange={onToggle}
-                            className="mt-1 w-5 h-5 text-indigo-600 rounded"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-semibold text-gray-900">{exercise.name}</h4>
-                                {exercise.emoji && <span className="text-2xl">{exercise.emoji}</span>}
-                            </div>
-                            <p className="text-sm text-indigo-600 font-medium mt-1">{exercise.sets}</p>
-                            <p className="text-sm text-gray-600 mt-1">{exercise.description}</p>
-                            {exercise.note && (
-                                <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded mt-2">
-                                    💡 {exercise.note}
-                                </p>
+                <div 
+                    onClick={onToggle}
+                    className={`glass-card rounded-3xl overflow-hidden mb-4 cursor-pointer exercise-card ${isCompleted ? 'opacity-70' : ''}`}
+                >
+                    {showImage && exercise.imageKey && (
+                        <div className={`relative ${isCompleted ? 'completed-overlay' : ''}`}>
+                            <img 
+                                src={exerciseImages[exercise.imageKey]} 
+                                alt={exercise.name}
+                                className="exercise-image"
+                                loading="lazy"
+                            />
+                            {isCompleted && (
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <div className="text-6xl">✓</div>
+                                </div>
                             )}
+                        </div>
+                    )}
+                    <div className="p-5">
+                        <div className="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                checked={isCompleted}
+                                onChange={(e) => e.stopPropagation()}
+                                className="mt-1 w-6 h-6 accent-purple-600 rounded-lg"
+                                style={{ accentColor: '#8b5cf6' }}
+                            />
+                            <div className="flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                    <h4 className="font-bold text-gray-900 text-lg">{exercise.name}</h4>
+                                    {exercise.emoji && <span className="text-3xl">{exercise.emoji}</span>}
+                                </div>
+                                <p className="text-sm font-semibold gradient-text mt-1">{exercise.sets}</p>
+                                <p className="text-sm text-gray-600 mt-2">{exercise.description}</p>
+                                {exercise.note && (
+                                    <div className="glass-dark text-white p-3 rounded-2xl mt-3 text-sm">
+                                        <span className="font-semibold">💡 </span>{exercise.note}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -167,72 +397,72 @@
 
             const workoutData = {
                 mobility: {
-                    title: '🧘‍♀️ Mobilità Iniziale',
-                    subtitle: '10 minuti - Prima di ogni sessione',
+                    title: 'Mobilità',
+                    icon: '🧘‍♀️',
+                    subtitle: '10 minuti - Inizia sempre da qui',
+                    color: 'from-pink-500 to-rose-500',
                     exercises: [
-                        { id: 1, name: 'Cerchi con le spalle', sets: '10 avanti + 10 indietro', description: 'Rilassa spalle e trapezi', emoji: '🔄' },
-                        { id: 2, name: 'Rotazioni del collo', sets: '8 per lato', description: 'Movimenti lenti e controllati', emoji: '↔️' },
-                        { id: 3, name: 'Cerchi polsi e caviglie', sets: '10 per lato', description: 'Prepara le articolazioni', emoji: '⭕' },
-                        { id: 4, name: 'Cat-Cow (quadrupedia)', sets: '10 ripetizioni', description: 'Mobilizza la colonna vertebrale', emoji: '🐱' },
-                        { id: 5, name: 'Rotazioni del busto', sets: '10 per lato', description: 'Ruota da seduta o in piedi', emoji: '🔃' },
-                        { id: 6, name: 'Swing delle gambe', sets: '10 per gamba', description: 'Avanti/indietro e laterale', emoji: '🦵' },
-                        { id: 7, name: 'Jumping jacks o marcia', sets: '2 minuti', description: 'Aumenta la temperatura corporea', emoji: '🏃‍♀️' }
+                        { id: 1, name: 'Cerchi con le spalle', sets: '10 avanti + 10 indietro', description: 'Rilassa spalle e trapezi', emoji: '🔄', imageKey: 'shoulder_circles' },
+                        { id: 2, name: 'Rotazioni del collo', sets: '8 per lato', description: 'Movimenti lenti e controllati', emoji: '↔️', imageKey: 'neck_rotation' },
+                        { id: 3, name: 'Cerchi polsi e caviglie', sets: '10 per lato', description: 'Prepara le articolazioni', emoji: '⭕', imageKey: 'wrist_ankle' },
+                        { id: 4, name: 'Cat-Cow', sets: '10 ripetizioni', description: 'Mobilizza la colonna vertebrale', emoji: '🐱', imageKey: 'cat_cow' },
+                        { id: 5, name: 'Rotazioni del busto', sets: '10 per lato', description: 'Ruota da seduta o in piedi', emoji: '🔃', imageKey: 'torso_rotation' },
+                        { id: 6, name: 'Swing delle gambe', sets: '10 per gamba', description: 'Avanti/indietro e laterale', emoji: '🦵', imageKey: 'leg_swings' },
+                        { id: 7, name: 'Jumping jacks', sets: '2 minuti', description: 'Aumenta la temperatura corporea', emoji: '🏃‍♀️', imageKey: 'jumping_jacks' }
                     ]
                 },
                 upper: {
-                    title: '💪 Parte Superiore',
+                    title: 'Superiore',
+                    icon: '💪',
                     subtitle: 'Lunedì - Schiena, Spalle, Braccia',
+                    color: 'from-purple-500 to-indigo-500',
                     exercises: [
-                        // SCHIENA
-                        { id: 1, name: 'Rematore con manubri', sets: '3 serie x 12 rip', description: 'Busto inclinato 45°, gomiti lungo il corpo', emoji: '🚣‍♀️', note: 'Fondamentale per la postura' },
-                        { id: 2, name: 'Pull-over con manubrio', sets: '3 serie x 10 rip', description: 'Sdraiata, scendi manubrio dietro la testa', emoji: '🔽' },
-                        { id: 3, name: 'Superman', sets: '3 serie x 12 rip', description: 'A terra prona, alterna braccia e gambe', emoji: '🦸‍♀️' },
-                        { id: 4, name: 'Reverse fly', sets: '3 serie x 12 rip', description: 'Busto flesso, apri braccia lateralmente', emoji: '🦅' },
-                        
-                        // SPALLE
-                        { id: 5, name: 'Military press', sets: '3 serie x 10 rip', description: 'Spingi manubri sopra la testa', emoji: '⬆️', note: 'Ottimo per densità ossea' },
-                        { id: 6, name: 'Alzate laterali', sets: '3 serie x 12 rip', description: 'Solleva lateralmente fino altezza spalle', emoji: '↔️' },
-                        { id: 7, name: 'Alzate frontali alternate', sets: '3 serie x 10/braccio', description: 'Alza un manubrio alla volta davanti', emoji: '⬆️' },
-                        { id: 8, name: 'Scrollate di spalle', sets: '3 serie x 15 rip', description: 'Solleva solo le spalle verso orecchie', emoji: '🤷‍♀️' },
-                        
-                        // BRACCIA
-                        { id: 9, name: 'Curl bicipiti', sets: '3 serie x 12 rip', description: 'Gomiti fermi, piega avambracci', emoji: '💪' },
-                        { id: 10, name: 'Curl a martello', sets: '3 serie x 10 rip', description: 'Palmi rivolti uno verso altro', emoji: '🔨' },
-                        { id: 11, name: 'French press tricipiti', sets: '3 serie x 10 rip', description: 'Sdraiata, piega gomiti verso fronte', emoji: '🔽' },
-                        { id: 12, name: 'Kickback tricipiti', sets: '3 serie x 12/braccio', description: 'Busto flesso, estendi braccio indietro', emoji: '👊' }
+                        { id: 1, name: 'Rematore con manubri', sets: '3 x 12', description: 'Busto inclinato 45°, gomiti lungo il corpo', emoji: '🚣‍♀️', imageKey: 'bent_over_row', note: 'Fondamentale per postura' },
+                        { id: 2, name: 'Pull-over', sets: '3 x 10', description: 'Sdraiata, scendi manubrio dietro la testa', emoji: '🔽', imageKey: 'pullover' },
+                        { id: 3, name: 'Superman', sets: '3 x 12', description: 'A terra prona, alterna braccia e gambe', emoji: '🦸‍♀️', imageKey: 'superman' },
+                        { id: 4, name: 'Reverse fly', sets: '3 x 12', description: 'Busto flesso, apri braccia lateralmente', emoji: '🦅', imageKey: 'reverse_fly' },
+                        { id: 5, name: 'Military press', sets: '3 x 10', description: 'Spingi manubri sopra la testa', emoji: '⬆️', imageKey: 'military_press', note: 'Top per densità ossea' },
+                        { id: 6, name: 'Alzate laterali', sets: '3 x 12', description: 'Solleva fino altezza spalle', emoji: '↔️', imageKey: 'lateral_raise' },
+                        { id: 7, name: 'Alzate frontali', sets: '3 x 10/braccio', description: 'Alza un manubrio alla volta', emoji: '⬆️', imageKey: 'front_raise' },
+                        { id: 8, name: 'Scrollate spalle', sets: '3 x 15', description: 'Solleva spalle verso orecchie', emoji: '🤷‍♀️', imageKey: 'shoulder_shrugs' },
+                        { id: 9, name: 'Curl bicipiti', sets: '3 x 12', description: 'Gomiti fermi, piega avambracci', emoji: '💪', imageKey: 'bicep_curl' },
+                        { id: 10, name: 'Curl a martello', sets: '3 x 10', description: 'Palmi rivolti uno verso altro', emoji: '🔨', imageKey: 'hammer_curl' },
+                        { id: 11, name: 'French press', sets: '3 x 10', description: 'Sdraiata, piega gomiti verso fronte', emoji: '🔽', imageKey: 'french_press' },
+                        { id: 12, name: 'Kickback tricipiti', sets: '3 x 12/braccio', description: 'Busto flesso, estendi indietro', emoji: '👊', imageKey: 'tricep_kickback' }
                     ]
                 },
                 lower: {
-                    title: '🍑 Parte Inferiore + Core',
-                    subtitle: 'Giovedì - Gambe, Glutei, Addome',
+                    title: 'Inferiore',
+                    icon: '🍑',
+                    subtitle: 'Giovedì - Gambe, Glutei, Core',
+                    color: 'from-blue-500 to-cyan-500',
                     exercises: [
-                        // GAMBE E GLUTEI
-                        { id: 1, name: 'Squat con manubri', sets: '4 serie x 12 rip', description: 'Scendi fino a 90°, schiena dritta', emoji: '🏋️‍♀️', note: 'PRIORITÀ per osteoporosi!' },
-                        { id: 2, name: 'Affondi alternati', sets: '3 serie x 10/gamba', description: 'Passo avanti, scendi, ritorna', emoji: '🦵' },
-                        { id: 3, name: 'Stacchi rumeni', sets: '3 serie x 12 rip', description: 'Gambe tese, scendi con manubri', emoji: '⬇️', note: 'Eccellente per glutei' },
-                        { id: 4, name: 'Ponte glutei con peso', sets: '3 serie x 15 rip', description: 'Sdraiata, manubrio sul bacino, solleva', emoji: '🌉' },
-                        { id: 5, name: 'Affondi laterali', sets: '3 serie x 10/lato', description: 'Passo laterale, piega ginocchio', emoji: '↔️' },
-                        { id: 6, name: 'Calf raises', sets: '3 serie x 20 rip', description: 'Solleva sui talloni con manubri', emoji: '🦶' },
-                        
-                        // ADDOME E CORE
-                        { id: 7, name: 'Plank', sets: '3 serie x 30-45"', description: 'Corpo allineato, addome contratto', emoji: '📏', note: 'Usa il timer!' },
-                        { id: 8, name: 'Crunch con peso', sets: '3 serie x 15 rip', description: 'Manubrio sul petto, solleva busto', emoji: '⬆️' },
-                        { id: 9, name: 'Russian twist', sets: '3 serie x 20 (10/lato)', description: 'Seduta, ruota busto con manubrio', emoji: '🔄' },
-                        { id: 10, name: 'Dead bug', sets: '3 serie x 12 rip', description: 'Schiena a terra, alterna braccia/gambe', emoji: '🪲' },
-                        { id: 11, name: 'Side plank', sets: '2 serie x 20-30"/lato', description: 'Su un lato, corpo allineato', emoji: '📐' },
-                        { id: 12, name: 'Mountain climbers', sets: '3 serie x 20 rip', description: 'Da plank, porta ginocchia al petto', emoji: '⛰️' }
+                        { id: 1, name: 'Squat con manubri', sets: '4 x 12', description: 'Scendi a 90°, schiena dritta', emoji: '🏋️‍♀️', imageKey: 'squat', note: 'PRIORITÀ osteoporosi!' },
+                        { id: 2, name: 'Affondi alternati', sets: '3 x 10/gamba', description: 'Passo avanti, scendi, ritorna', emoji: '🦵', imageKey: 'lunges' },
+                        { id: 3, name: 'Stacchi rumeni', sets: '3 x 12', description: 'Gambe tese, scendi con manubri', emoji: '⬇️', imageKey: 'romanian_deadlift', note: 'Top per glutei' },
+                        { id: 4, name: 'Ponte glutei', sets: '3 x 15', description: 'Manubrio sul bacino, solleva', emoji: '🌉', imageKey: 'glute_bridge' },
+                        { id: 5, name: 'Affondi laterali', sets: '3 x 10/lato', description: 'Passo laterale, piega ginocchio', emoji: '↔️', imageKey: 'side_lunges' },
+                        { id: 6, name: 'Calf raises', sets: '3 x 20', description: 'Solleva sui talloni', emoji: '🦶', imageKey: 'calf_raises' },
+                        { id: 7, name: 'Plank', sets: '3 x 30-45"', description: 'Corpo allineato, core contratto', emoji: '📏', imageKey: 'plank', note: 'Usa il timer!' },
+                        { id: 8, name: 'Crunch con peso', sets: '3 x 15', description: 'Manubrio sul petto', emoji: '⬆️', imageKey: 'crunch' },
+                        { id: 9, name: 'Russian twist', sets: '3 x 20', description: 'Ruota busto con manubrio', emoji: '🔄', imageKey: 'russian_twist' },
+                        { id: 10, name: 'Dead bug', sets: '3 x 12', description: 'Alterna braccia/gambe opposte', emoji: '🪲', imageKey: 'dead_bug' },
+                        { id: 11, name: 'Side plank', sets: '2 x 20-30"/lato', description: 'Corpo allineato lateralmente', emoji: '📐', imageKey: 'side_plank' },
+                        { id: 12, name: 'Mountain climbers', sets: '3 x 20', description: 'Ginocchia al petto alternate', emoji: '⛰️', imageKey: 'mountain_climbers' }
                     ]
                 },
                 stretching: {
-                    title: '🧘 Stretching Finale',
-                    subtitle: '5-10 minuti - Dopo ogni sessione',
+                    title: 'Stretching',
+                    icon: '🧘',
+                    subtitle: '5-10 minuti - Finisci sempre con questo',
+                    color: 'from-emerald-500 to-teal-500',
                     exercises: [
-                        { id: 1, name: "Child's pose", sets: '1 minuto', description: 'Seduta sui talloni, braccia avanti', emoji: '🙇‍♀️' },
-                        { id: 2, name: 'Stretching quadricipiti', sets: '30" per gamba', description: 'In piedi, porta tallone al gluteo', emoji: '🦵' },
-                        { id: 3, name: 'Stretching posteriori coscia', sets: '30" per gamba', description: 'Gamba tesa su rialzo, piegati avanti', emoji: '🤸‍♀️' },
-                        { id: 4, name: 'Stretching glutei (figura 4)', sets: '30" per lato', description: 'Sdraiata, caviglia su ginocchio opposto', emoji: '4️⃣' },
-                        { id: 5, name: 'Stretching pettorali', sets: '30" per lato', description: 'Braccio su muro, ruota corpo opposto', emoji: '🚪' },
-                        { id: 6, name: 'Stretching spalle e tricipiti', sets: '30" per braccio', description: 'Porta gomito dietro la testa', emoji: '💪' }
+                        { id: 1, name: "Child's pose", sets: '1 minuto', description: 'Seduta sui talloni, braccia avanti', emoji: '🙇‍♀️', imageKey: 'childs_pose' },
+                        { id: 2, name: 'Stretch quadricipiti', sets: '30" per gamba', description: 'Porta tallone al gluteo', emoji: '🦵', imageKey: 'quad_stretch' },
+                        { id: 3, name: 'Stretch posteriori', sets: '30" per gamba', description: 'Gamba tesa, piegati avanti', emoji: '🤸‍♀️', imageKey: 'hamstring_stretch' },
+                        { id: 4, name: 'Stretch glutei', sets: '30" per lato', description: 'Caviglia su ginocchio opposto', emoji: '4️⃣', imageKey: 'glute_stretch' },
+                        { id: 5, name: 'Stretch pettorali', sets: '30" per lato', description: 'Braccio su muro, ruota corpo', emoji: '🚪', imageKey: 'chest_stretch' },
+                        { id: 6, name: 'Stretch spalle', sets: '30" per braccio', description: 'Gomito dietro la testa', emoji: '💪', imageKey: 'shoulder_stretch' }
                     ]
                 }
             };
@@ -243,26 +473,32 @@
             const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
             return (
-                <div className="min-h-screen pb-20">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 sticky top-0 z-10 shadow-lg">
-                        <h1 className="text-2xl font-bold mb-1">💪 La Mia Scheda</h1>
-                        <p className="text-indigo-100 text-sm">Allenamento con i pesi a casa</p>
+                <div className="min-h-screen pb-24">
+                    {/* Header with gradient */}
+                    <div className={`bg-gradient-to-r ${currentSection.color} text-white p-8 sticky top-0 z-20 shadow-2xl`}>
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-5xl float-animation">{currentSection.icon}</span>
+                            <div>
+                                <h1 className="text-3xl font-bold">My Workout</h1>
+                                <p className="text-white/90 text-sm mt-1">Journey to Strength ✨</p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Navigation Pills */}
-                    <div className="bg-white shadow-sm sticky top-[88px] z-10 overflow-x-auto">
-                        <div className="flex gap-2 p-3 min-w-max">
+                    <div className="glass-dark sticky top-[120px] z-10 overflow-x-auto">
+                        <div className="flex gap-3 p-4 min-w-max">
                             {Object.entries(workoutData).map(([key, data]) => (
                                 <button
                                     key={key}
                                     onClick={() => setActiveDay(key)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                    className={`nav-pill px-6 py-3 rounded-2xl text-sm font-bold whitespace-nowrap ${
                                         activeDay === key
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                                            ? 'active text-white'
+                                            : 'glass text-white/80'
                                     }`}
                                 >
+                                    <span className="mr-2">{data.icon}</span>
                                     {data.title}
                                 </button>
                             ))}
@@ -270,37 +506,63 @@
                     </div>
 
                     {/* Content */}
-                    <div className="p-4">
-                        {/* Section Header */}
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-gray-900 mb-1">{currentSection.title}</h2>
-                            <p className="text-sm text-gray-600">{currentSection.subtitle}</p>
+                    <div className="p-5">
+                        {/* Section Info */}
+                        <div className="glass-card rounded-3xl p-6 mb-5">
+                            <h2 className="text-2xl font-bold gradient-text mb-1">{currentSection.title}</h2>
+                            <p className="text-gray-600 text-sm mb-4">{currentSection.subtitle}</p>
                             
-                            {/* Progress Bar */}
-                            <div className="mt-3">
-                                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                                    <span>Progressi</span>
-                                    <span>{completedCount}/{totalCount}</span>
+                            {/* Circular Progress */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                    <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
+                                        <span>Progressi</span>
+                                        <span className="gradient-text">{completedCount}/{totalCount}</span>
+                                    </div>
+                                    <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-out"
+                                            style={{ width: `${progressPercent}%` }}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div 
-                                        className="bg-indigo-600 h-full transition-all duration-300"
-                                        style={{ width: `${progressPercent}%` }}
-                                    />
+                                <div className="ml-6 relative w-16 h-16">
+                                    <svg className="transform -rotate-90 w-16 h-16">
+                                        <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none"/>
+                                        <circle 
+                                            cx="32" cy="32" r="28" 
+                                            stroke="url(#progressGrad)" 
+                                            strokeWidth="4" 
+                                            fill="none"
+                                            strokeDasharray={`${2 * Math.PI * 28}`}
+                                            strokeDashoffset={`${2 * Math.PI * 28 * (1 - progressPercent / 100)}`}
+                                            className="transition-all duration-500"
+                                            strokeLinecap="round"
+                                        />
+                                        <defs>
+                                            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#a855f7" />
+                                                <stop offset="100%" stopColor="#ec4899" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-xs font-bold gradient-text">{Math.round(progressPercent)}%</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex gap-2 mt-3">
+                            <div className="flex gap-3 mt-5">
                                 <button
                                     onClick={() => setShowTimer(!showTimer)}
-                                    className="flex-1 bg-indigo-100 text-indigo-700 py-2 px-4 rounded-lg text-sm font-medium active:bg-indigo-200"
+                                    className="flex-1 btn-primary text-white py-3 px-4 rounded-2xl text-sm font-bold"
                                 >
-                                    {showTimer ? '✕ Nascondi' : '⏱ Mostra'} Timer
+                                    {showTimer ? '✕ Chiudi' : '⏱'} Timer
                                 </button>
                                 <button
                                     onClick={() => resetDay(activeDay)}
-                                    className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium active:bg-gray-200"
+                                    className="glass-dark text-white py-3 px-4 rounded-2xl text-sm font-bold"
                                 >
                                     ↻ Reset
                                 </button>
@@ -309,15 +571,8 @@
 
                         {/* Timer */}
                         {showTimer && (
-                            <div className="mb-4">
-                                <Timer 
-                                    duration={60} 
-                                    onComplete={() => {
-                                        if ('vibrate' in navigator) {
-                                            navigator.vibrate([200, 100, 200]);
-                                        }
-                                    }}
-                                />
+                            <div className="mb-5">
+                                <Timer duration={60} />
                             </div>
                         )}
 
@@ -329,48 +584,67 @@
                                     exercise={exercise}
                                     isCompleted={progress[activeDay]?.[exercise.id] || false}
                                     onToggle={() => toggleExercise(activeDay, exercise.id)}
+                                    showImage={true}
                                 />
                             ))}
                         </div>
 
-                        {/* Completion Message */}
+                        {/* Completion Celebration */}
                         {progressPercent === 100 && (
-                            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center mt-4">
-                                <div className="text-4xl mb-2">🎉</div>
-                                <h3 className="font-bold text-green-800 text-lg">Complimenti!</h3>
-                                <p className="text-green-700 text-sm">Hai completato questa sessione!</p>
+                            <div className="glass-card rounded-3xl p-8 text-center mt-5 bg-gradient-to-br from-green-50 to-emerald-50">
+                                <div className="text-6xl mb-3 float-animation">🎉</div>
+                                <h3 className="font-bold text-2xl gradient-text mb-2">Fantastico!</h3>
+                                <p className="text-gray-600">Hai completato questa sessione! 💪</p>
                             </div>
                         )}
 
                         {/* Info Cards */}
-                        <div className="mt-6 space-y-3">
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-amber-900 mb-2">⚠️ Importante per Osteoporosi</h3>
-                                <ul className="text-sm text-amber-800 space-y-1">
-                                    <li>• Priorità: esercizi con carico (squat, affondi, stacchi)</li>
-                                    <li>• Aumenta peso gradualmente quando diventa facile</li>
-                                    <li>• Forma perfetta > peso maggiore</li>
-                                    <li>• Riposo 48h tra sessioni stesso gruppo muscolare</li>
+                        <div className="mt-6 space-y-4">
+                            <div className="glass rounded-3xl p-5 text-white">
+                                <h3 className="font-bold text-lg mb-3">⚠️ Focus Osteoporosi</h3>
+                                <ul className="text-sm space-y-2 text-white/90">
+                                    <li>• Priorità: squat, affondi, stacchi</li>
+                                    <li>• Aumenta peso gradualmente</li>
+                                    <li>• Forma perfetta > peso alto</li>
+                                    <li>• Riposo 48h tra sessioni</li>
                                 </ul>
                             </div>
 
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-blue-900 mb-2">📅 Pianificazione Settimanale</h3>
-                                <ul className="text-sm text-blue-800 space-y-1">
-                                    <li>• <strong>Lunedì:</strong> Parte superiore + mobilità</li>
-                                    <li>• <strong>Martedì:</strong> Cardio (Balla e Snella)</li>
-                                    <li>• <strong>Mercoledì:</strong> Riposo o mobilità leggera</li>
-                                    <li>• <strong>Giovedì:</strong> Parte inferiore + core + mobilità</li>
-                                    <li>• <strong>Venerdì:</strong> Cardio (Balla e Snella)</li>
-                                    <li>• <strong>Weekend:</strong> Riposo attivo</li>
-                                </ul>
+                            <div className="glass rounded-3xl p-5 text-white">
+                                <h3 className="font-bold text-lg mb-3">📅 Settimana Tipo</h3>
+                                <div className="text-sm space-y-2 text-white/90">
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Lun</span>
+                                        <span>Parte superiore</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Mar</span>
+                                        <span>Cardio (Balla e Snella)</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Mer</span>
+                                        <span>Riposo / mobilità</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Gio</span>
+                                        <span>Parte inferiore + core</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Ven</span>
+                                        <span>Cardio (Balla e Snella)</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-semibold">Weekend</span>
+                                        <span>Riposo attivo</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-purple-900 mb-2">🎯 Extra Opzionali</h3>
-                                <ul className="text-sm text-purple-800 space-y-1">
-                                    <li>• <strong>Hula-hoop:</strong> 10-15 min nei giorni riposo</li>
-                                    <li>• <strong>Corda:</strong> 5-10 min come riscaldamento</li>
+                            <div className="glass rounded-3xl p-5 text-white">
+                                <h3 className="font-bold text-lg mb-3">🎯 Extra</h3>
+                                <ul className="text-sm space-y-2 text-white/90">
+                                    <li>• Hula-hoop: 10-15 min (giorni riposo)</li>
+                                    <li>• Corda: 5-10 min (riscaldamento)</li>
                                     <li>• Ottimi per densità ossea!</li>
                                 </ul>
                             </div>
@@ -380,17 +654,7 @@
             );
         };
 
-        // Render the app
         ReactDOM.render(<WorkoutApp />, document.getElementById('root'));
-
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed'));
-            });
-        }
     </script>
 </body>
 </html>
